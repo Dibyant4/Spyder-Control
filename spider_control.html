@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32-CAM Controller</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a0000 0%, #330000 50%, #000000 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            max-width: 1400px;
+            width: 100%;
+            max-height: 90vh;
+        }
+
+        .card {
+            background: rgba(20, 20, 20, 0.95);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 20px 60px rgba(255, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 0, 0, 0.2);
+        }
+
+        .sensor-card {
+            background: rgba(10, 10, 10, 0.98);
+            color: white;
+        }
+
+        h2 {
+            font-size: 20px;
+            margin-bottom: 15px;
+            font-weight: 600;
+            color: #ff3333;
+        }
+
+        .sensor-card h2 {
+            color: #ff3333;
+            border-bottom: 2px solid #ff3333;
+            padding-bottom: 10px;
+        }
+
+        .sensor-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .sensor-item {
+            background: rgba(255, 51, 51, 0.1);
+            padding: 10px;
+            border-radius: 10px;
+            border-left: 4px solid #ff3333;
+        }
+
+        .sensor-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.7;
+            margin-bottom: 3px;
+            color: #ffcccc;
+        }
+
+        .sensor-value {
+            font-size: 22px;
+            font-weight: 700;
+            color: #ff3333;
+        }
+
+        .cam-display {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #ff3333;
+            font-weight: 600;
+            border: 2px dashed #ff3333;
+            box-shadow: inset 0 0 30px rgba(255, 51, 51, 0.1);
+        }
+
+        .controls-section {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .control-group h3 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #ff3333;
+            font-weight: 600;
+        }
+
+        .cam-rotation-container {
+            width: 100%;
+            position: relative;
+        }
+
+        .rotation-track {
+            width: 100%;
+            height: 60px;
+            background: linear-gradient(to right, #ff0000, #330000, #ff0000);
+            border-radius: 30px;
+            position: relative;
+            box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            border: 2px solid rgba(255, 51, 51, 0.3);
+        }
+
+        .rotation-track::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            width: 3px;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.5);
+            transform: translateX(-50%);
+        }
+
+        .rotation-handle {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #ff3333, #ff6666);
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            cursor: grab;
+            box-shadow: 0 5px 15px rgba(255, 51, 51, 0.5);
+            transition: box-shadow 0.2s, transform 0.1s;
+            border: 3px solid #000;
+        }
+
+        .rotation-handle:active {
+            cursor: grabbing;
+            box-shadow: 0 8px 20px rgba(255, 51, 51, 0.7);
+        }
+
+        .rotation-value {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            color: #ff3333;
+        }
+
+        .joystick-container {
+            width: 200px;
+            height: 200px;
+            position: relative;
+        }
+
+        .joystick-base {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a1a, #0a0a0a);
+            border-radius: 50%;
+            position: relative;
+            box-shadow: inset 0 8px 20px rgba(0, 0, 0, 0.8);
+            border: 5px solid rgba(255, 51, 51, 0.3);
+        }
+
+        .joystick-base::before {
+            content: '';
+            position: absolute;
+            width: 60%;
+            height: 60%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 2px dashed rgba(255, 51, 51, 0.3);
+            border-radius: 50%;
+        }
+
+        .joystick-stick {
+            width: 75px;
+            height: 75px;
+            background: linear-gradient(135deg, #ff3333, #ff6666);
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            cursor: grab;
+            box-shadow: 0 8px 20px rgba(255, 51, 51, 0.6);
+            transition: box-shadow 0.2s;
+            border: 5px solid #000;
+        }
+
+        .joystick-stick:active {
+            cursor: grabbing;
+            box-shadow: 0 12px 30px rgba(255, 51, 51, 0.8);
+        }
+
+        .joystick-values {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .joystick-axis {
+            display: inline-block;
+            margin: 0 10px;
+            font-size: 14px;
+            color: #ff3333;
+            font-weight: 600;
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div style="display: flex; flex-direction: column; gap: 20px; height: 90vh;">
+            <div class="card sensor-card" style="flex: 0 0 auto;">
+                <h2>Ultrasonic Sensor Data</h2>
+                <div class="sensor-grid">
+                    <div class="sensor-item">
+                        <div class="sensor-label">Front</div>
+                        <div class="sensor-value" id="front-sensor">-- cm</div>
+                    </div>
+                    <div class="sensor-item">
+                        <div class="sensor-label">Back</div>
+                        <div class="sensor-value" id="back-sensor">-- cm</div>
+                    </div>
+                    <div class="sensor-item">
+                        <div class="sensor-label">Left</div>
+                        <div class="sensor-value" id="left-sensor">-- cm</div>
+                    </div>
+                    <div class="sensor-item">
+                        <div class="sensor-label">Right</div>
+                        <div class="sensor-value" id="right-sensor">-- cm</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="flex: 1; min-height: 0;">
+                <div class="cam-display">
+                    ESP32-CAM Display
+                </div>
+            </div>
+        </div>
+
+        <div class="card controls-section">
+            <div class="control-group">
+                <h3>Cam Rotation 180°</h3>
+                <div class="cam-rotation-container">
+                    <div class="rotation-track">
+                        <div class="rotation-handle" id="rotation-handle"></div>
+                    </div>
+                    <div class="rotation-value" id="rotation-value">0°</div>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3>Joystick</h3>
+                <div class="joystick-container">
+                    <div class="joystick-base">
+                        <div class="joystick-stick" id="joystick-stick"></div>
+                    </div>
+                </div>
+                <div class="joystick-values">
+                    <span class="joystick-axis">X: <span id="joy-x">0</span></span>
+                    <span class="joystick-axis">Y: <span id="joy-y">0</span></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Joystick Controller
+        const joystickStick = document.getElementById('joystick-stick');
+        const joystickBase = joystickStick.parentElement;
+        const joyXDisplay = document.getElementById('joy-x');
+        const joyYDisplay = document.getElementById('joy-y');
+
+        let isDraggingJoystick = false;
+        const maxDistance = 62.5; // Maximum distance from center
+
+        function updateJoystick(e) {
+            if (!isDraggingJoystick) return;
+
+            const rect = joystickBase.getBoundingClientRect();
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+
+            const touch = e.touches ? e.touches[0] : e;
+            let x = touch.clientX - rect.left - centerX;
+            let y = touch.clientY - rect.top - centerY;
+
+            // Calculate distance from center
+            const distance = Math.sqrt(x * x + y * y);
+
+            // Constrain to circular boundary
+            if (distance > maxDistance) {
+                const angle = Math.atan2(y, x);
+                x = Math.cos(angle) * maxDistance;
+                y = Math.sin(angle) * maxDistance;
+            }
+
+            // Update position
+            joystickStick.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
+
+            // Update display values (-100 to 100)
+            const xValue = Math.round((x / maxDistance) * 100);
+            const yValue = Math.round((y / maxDistance) * -100); // Invert Y for intuitive up/down
+            joyXDisplay.textContent = xValue;
+            joyYDisplay.textContent = yValue;
+        }
+
+        function resetJoystick() {
+            isDraggingJoystick = false;
+            joystickStick.style.transform = 'translate(-50%, -50%)';
+            joystickStick.style.transition = 'transform 0.2s ease-out';
+            setTimeout(() => {
+                joystickStick.style.transition = '';
+            }, 200);
+            joyXDisplay.textContent = '0';
+            joyYDisplay.textContent = '0';
+        }
+
+        joystickStick.addEventListener('mousedown', () => isDraggingJoystick = true);
+        joystickStick.addEventListener('touchstart', () => isDraggingJoystick = true);
+        document.addEventListener('mousemove', updateJoystick);
+        document.addEventListener('touchmove', updateJoystick);
+        document.addEventListener('mouseup', resetJoystick);
+        document.addEventListener('touchend', resetJoystick);
+
+        // Camera Rotation Controller
+        const rotationHandle = document.getElementById('rotation-handle');
+        const rotationTrack = rotationHandle.parentElement;
+        const rotationValue = document.getElementById('rotation-value');
+
+        let isDraggingRotation = false;
+
+        // Initialize handle at center
+        rotationHandle.style.left = '50%';
+
+        function updateRotation(e) {
+            if (!isDraggingRotation) return;
+
+            const rect = rotationTrack.getBoundingClientRect();
+            const touch = e.touches ? e.touches[0] : e;
+            let x = touch.clientX - rect.left;
+
+            // Constrain to track bounds
+            x = Math.max(25, Math.min(x, rect.width - 25));
+
+            // Update position
+            const percentage = (x - 25) / (rect.width - 50);
+            rotationHandle.style.left = `${x}px`;
+
+            // Calculate angle from -90 to +90 degrees
+            const angle = Math.round((percentage - 0.5) * 180);
+            rotationValue.textContent = `${angle}°`;
+        }
+
+        rotationHandle.addEventListener('mousedown', () => isDraggingRotation = true);
+        rotationHandle.addEventListener('touchstart', () => isDraggingRotation = true);
+        document.addEventListener('mousemove', updateRotation);
+        document.addEventListener('touchmove', updateRotation);
+        document.addEventListener('mouseup', () => isDraggingRotation = false);
+        document.addEventListener('touchend', () => isDraggingRotation = false);
+
+        // Simulate sensor data (optional - for demo purposes)
+        function updateSensorData() {
+            const sensors = ['front-sensor', 'back-sensor', 'left-sensor', 'right-sensor'];
+            sensors.forEach(id => {
+                const value = Math.floor(Math.random() * 200) + 10;
+                const element = document.getElementById(id);
+                element.textContent = `${value} cm`;
+            });
+        }
+
+        // Uncomment to see simulated sensor data
+        // setInterval(updateSensorData, 2000);
+    </script>
+</body>
+</html>

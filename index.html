@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
 
-    <!-- Lock viewport -->
-    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- iPhone landscape lock -->
+    <meta name="viewport"
+          content="width=device-height, height=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
 
@@ -18,9 +20,9 @@
         }
 
         html, body {
-            width: 100%;
-            height: 100%;
-            overflow: hidden; /* NO SCROLL */
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
         }
 
         body {
@@ -31,11 +33,14 @@
             justify-content: center;
         }
 
-        /* Wrapper for scaling */
+        /* FULL SCREEN APP */
         .app-wrapper {
-            width: 1400px;
-            height: 800px;
-            transform-origin: center center;
+            width: 100vw;
+            height: 100vh;
+            padding: env(safe-area-inset-top)
+                     env(safe-area-inset-right)
+                     env(safe-area-inset-bottom)
+                     env(safe-area-inset-left);
         }
 
         .container {
@@ -43,13 +48,13 @@
             height: 100%;
             display: grid;
             grid-template-columns: 2fr 1fr;
-            gap: 20px;
+            gap: 16px;
         }
 
         .card {
             background: rgba(20, 20, 20, 0.95);
-            border-radius: 20px;
-            padding: 20px;
+            border-radius: 18px;
+            padding: 16px;
             border: 1px solid rgba(255, 51, 51, 0.2);
         }
 
@@ -60,12 +65,12 @@
         .sensor-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
+            gap: 8px;
         }
 
         .sensor-item {
             background: rgba(255, 51, 51, 0.1);
-            padding: 10px;
+            padding: 8px;
             border-radius: 10px;
             border-left: 4px solid #ff3333;
         }
@@ -76,20 +81,20 @@
         }
 
         .sensor-value {
-            font-size: 22px;
+            font-size: 20px;
             font-weight: bold;
             color: #ff3333;
         }
 
         .cam-display {
-            height: 100%;
+            flex: 1;
             background: #111;
             border: 2px dashed #ff3333;
             display: flex;
             align-items: center;
             justify-content: center;
             color: #ff3333;
-            font-size: 24px;
+            font-size: 22px;
             border-radius: 15px;
         }
 
@@ -100,15 +105,15 @@
         }
 
         .rotation-track {
-            height: 60px;
+            height: 50px;
             background: linear-gradient(to right, #ff0000, #330000, #ff0000);
             border-radius: 30px;
             position: relative;
         }
 
         .rotation-handle {
-            width: 50px;
-            height: 50px;
+            width: 44px;
+            height: 44px;
             background: #ff3333;
             border-radius: 50%;
             position: absolute;
@@ -118,8 +123,8 @@
         }
 
         .joystick-container {
-            width: 200px;
-            height: 200px;
+            width: 160px;
+            height: 160px;
             margin: auto;
         }
 
@@ -132,8 +137,8 @@
         }
 
         .joystick-stick {
-            width: 75px;
-            height: 75px;
+            width: 60px;
+            height: 60px;
             background: #ff3333;
             border-radius: 50%;
             position: absolute;
@@ -142,16 +147,13 @@
             transform: translate(-50%, -50%);
         }
 
-        /* MOBILE SCALING */
-        @media (max-width: 1024px) {
-            .app-wrapper {
-                transform: scale(0.7);
-            }
-        }
-
-        @media (max-width: 768px) {
-            .app-wrapper {
-                transform: scale(0.6);
+        /* FORCE LANDSCAPE */
+        @media screen and (orientation: portrait) {
+            body {
+                transform: rotate(90deg);
+                transform-origin: center;
+                width: 100vh;
+                height: 100vw;
             }
         }
     </style>
@@ -161,7 +163,7 @@
 <div class="app-wrapper">
     <div class="container">
 
-        <div style="display:flex; flex-direction:column; gap:20px;">
+        <div style="display:flex; flex-direction:column; gap:16px;">
             <div class="card">
                 <h2>Ultrasonic Sensor Data</h2>
                 <div class="sensor-grid">

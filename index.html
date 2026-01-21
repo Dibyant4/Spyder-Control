@@ -1,203 +1,242 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+<meta charset="UTF-8">
 
-    <!-- iPhone landscape lock -->
-    <meta name="viewport"
-          content="width=device-height, height=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport"
+      content="width=device-height, height=device-width,
+               initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 
-    <title>ESP32-CAM Controller</title>
+<title>ESP32-CAM Controller</title>
 
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
 
-        html, body {
-            width: 100vw;
-            height: 100vh;
-            overflow: hidden;
-        }
+html, body {
+  width:100vw;
+  height:100vh;
+  overflow:hidden;
+  background:radial-gradient(circle, #300000, #000);
+  font-family: system-ui, -apple-system;
+}
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a0000, #330000, #000000);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+body {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
 
-        /* FULL SCREEN APP */
-        .app-wrapper {
-            width: 100vw;
-            height: 100vh;
-            padding: env(safe-area-inset-top)
-                     env(safe-area-inset-right)
-                     env(safe-area-inset-bottom)
-                     env(safe-area-inset-left);
-        }
+/* SAFE AREA */
+.app {
+  width:100%;
+  height:100%;
+  padding: env(safe-area-inset-top)
+           env(safe-area-inset-right)
+           env(safe-area-inset-bottom)
+           env(safe-area-inset-left);
+}
 
-        .container {
-            width: 100%;
-            height: 100%;
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 16px;
-        }
+.layout {
+  width:100%;
+  height:100%;
+  display:grid;
+  grid-template-columns: 2.2fr 1fr;
+  gap:16px;
+}
 
-        .card {
-            background: rgba(20, 20, 20, 0.95);
-            border-radius: 18px;
-            padding: 16px;
-            border: 1px solid rgba(255, 51, 51, 0.2);
-        }
+/* CARDS */
+.card {
+  background:rgba(10,10,10,0.96);
+  border-radius:22px;
+  padding:18px;
+  box-shadow: inset 0 0 20px rgba(255,0,0,0.2);
+}
 
-        h2, h3 {
-            color: #ff3333;
-        }
+/* SENSOR */
+.sensor-grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
 
-        .sensor-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-        }
+.sensor {
+  background:linear-gradient(145deg,#200,#080000);
+  border-left:4px solid red;
+  padding:12px;
+  border-radius:12px;
+  color:#ff3333;
+}
 
-        .sensor-item {
-            background: rgba(255, 51, 51, 0.1);
-            padding: 8px;
-            border-radius: 10px;
-            border-left: 4px solid #ff3333;
-        }
+/* CAMERA */
+.camera {
+  flex:1;
+  margin-top:14px;
+  border-radius:20px;
+  border:2px dashed red;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  color:#ff3333;
+  font-size:22px;
+}
 
-        .sensor-label {
-            font-size: 11px;
-            color: #ffcccc;
-        }
+/* RIGHT */
+.right {
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+}
 
-        .sensor-value {
-            font-size: 20px;
-            font-weight: bold;
-            color: #ff3333;
-        }
+/* SLIDER */
+.slider {
+  position:relative;
+  height:50px;
+  background:linear-gradient(to right,#f00,#300,#f00);
+  border-radius:25px;
+}
 
-        .cam-display {
-            flex: 1;
-            background: #111;
-            border: 2px dashed #ff3333;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #ff3333;
-            font-size: 22px;
-            border-radius: 15px;
-        }
+.slider-knob {
+  position:absolute;
+  top:50%;
+  left:50%;
+  width:44px;
+  height:44px;
+  background:#ff5555;
+  border-radius:50%;
+  transform:translate(-50%,-50%);
+  touch-action:none;
+}
 
-        .controls-section {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
+/* JOYSTICK */
+.joy-area {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
 
-        .rotation-track {
-            height: 50px;
-            background: linear-gradient(to right, #ff0000, #330000, #ff0000);
-            border-radius: 30px;
-            position: relative;
-        }
+.joy-base {
+  width:180px;
+  height:180px;
+  background:#111;
+  border-radius:50%;
+  position:relative;
+}
 
-        .rotation-handle {
-            width: 44px;
-            height: 44px;
-            background: #ff3333;
-            border-radius: 50%;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
+.joy-stick {
+  width:60px;
+  height:60px;
+  background:#ff5555;
+  border-radius:50%;
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  touch-action:none;
+}
 
-        .joystick-container {
-            width: 160px;
-            height: 160px;
-            margin: auto;
-        }
+.coords {
+  margin-top:10px;
+  color:#ff4444;
+}
 
-        .joystick-base {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            background: #111;
-            position: relative;
-        }
-
-        .joystick-stick {
-            width: 60px;
-            height: 60px;
-            background: #ff3333;
-            border-radius: 50%;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-
-        /* FORCE LANDSCAPE */
-        @media screen and (orientation: portrait) {
-            body {
-                transform: rotate(90deg);
-                transform-origin: center;
-                width: 100vh;
-                height: 100vw;
-            }
-        }
-    </style>
+/* FORCE LANDSCAPE */
+@media (orientation:portrait) {
+  body {
+    transform: rotate(90deg);
+    width:100vh;
+    height:100vw;
+  }
+}
+</style>
 </head>
 
 <body>
-<div class="app-wrapper">
-    <div class="container">
+<div class="app">
+  <div class="layout">
 
-        <div style="display:flex; flex-direction:column; gap:16px;">
-            <div class="card">
-                <h2>Ultrasonic Sensor Data</h2>
-                <div class="sensor-grid">
-                    <div class="sensor-item"><div class="sensor-label">Front</div><div class="sensor-value">-- cm</div></div>
-                    <div class="sensor-item"><div class="sensor-label">Back</div><div class="sensor-value">-- cm</div></div>
-                    <div class="sensor-item"><div class="sensor-label">Left</div><div class="sensor-value">-- cm</div></div>
-                    <div class="sensor-item"><div class="sensor-label">Right</div><div class="sensor-value">-- cm</div></div>
-                </div>
-            </div>
+    <!-- LEFT -->
+    <div class="card">
+      <h3 style="color:red">Ultrasonic Sensor Data</h3>
+      <div class="sensor-grid">
+        <div class="sensor">Front<br>-- cm</div>
+        <div class="sensor">Back<br>-- cm</div>
+        <div class="sensor">Left<br>-- cm</div>
+        <div class="sensor">Right<br>-- cm</div>
+      </div>
 
-            <div class="card cam-display">
-                ESP32-CAM Display
-            </div>
+      <div class="camera">ESP32-CAM Display</div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="card right">
+
+      <div>
+        <h3 style="color:red; text-align:center">Cam Rotation 180°</h3>
+        <div class="slider" id="slider">
+          <div class="slider-knob" id="knob"></div>
         </div>
+        <p style="text-align:center;color:red">Angle: <span id="angle">90</span>°</p>
+      </div>
 
-        <div class="card controls-section">
-            <div>
-                <h3>Cam Rotation</h3>
-                <div class="rotation-track">
-                    <div class="rotation-handle"></div>
-                </div>
-            </div>
-
-            <div>
-                <h3>Joystick</h3>
-                <div class="joystick-container">
-                    <div class="joystick-base">
-                        <div class="joystick-stick"></div>
-                    </div>
-                </div>
-            </div>
+      <div class="joy-area">
+        <h3 style="color:red">Joystick</h3>
+        <div class="joy-base" id="joyBase">
+          <div class="joy-stick" id="joyStick"></div>
         </div>
+        <div class="coords">X: <span id="x">0</span> Y: <span id="y">0</span></div>
+      </div>
 
     </div>
+
+  </div>
 </div>
+
+<script>
+/* SLIDER */
+const slider = document.getElementById("slider");
+const knob = document.getElementById("knob");
+const angleText = document.getElementById("angle");
+
+slider.addEventListener("touchmove", e => {
+  const r = slider.getBoundingClientRect();
+  let x = e.touches[0].clientX - r.left;
+  x = Math.max(0, Math.min(r.width, x));
+  knob.style.left = x + "px";
+  angleText.textContent = Math.round(x / r.width * 180);
+});
+
+/* JOYSTICK */
+const base = document.getElementById("joyBase");
+const stick = document.getElementById("joyStick");
+const xOut = document.getElementById("x");
+const yOut = document.getElementById("y");
+
+base.addEventListener("touchmove", e => {
+  const r = base.getBoundingClientRect();
+  const cx = r.width / 2;
+  const cy = r.height / 2;
+  let x = e.touches[0].clientX - r.left - cx;
+  let y = e.touches[0].clientY - r.top - cy;
+  const d = Math.hypot(x,y);
+  const max = r.width / 2 - 30;
+  if (d > max) {
+    x *= max/d;
+    y *= max/d;
+  }
+  stick.style.transform = `translate(${x}px,${y}px)`;
+  xOut.textContent = Math.round(x);
+  yOut.textContent = Math.round(-y);
+});
+
+base.addEventListener("touchend", () => {
+  stick.style.transform = "translate(-50%,-50%)";
+  xOut.textContent = 0;
+  yOut.textContent = 0;
+});
+</script>
+
 </body>
 </html>
